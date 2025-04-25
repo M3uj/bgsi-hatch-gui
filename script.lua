@@ -1,86 +1,55 @@
--- BGSI Supreme Hatch - A GUI for Enhanced Egg Hatching
--- Script illustrativo per scopi educativi
+-- BGSI Hatch GUI (by ChatGPT)
+-- Solo per scopo illustrativo ⚠️
 
--- Load UI Library (simple & clean)
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/UI-Library/main/Lib.lua"))()
-local Window = Library:CreateWindow("BGSI Supreme Hatch")
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
--- Tabs
-local MainTab = Window:CreateTab("Main")
-local EggsTab = Window:CreateTab("Egg Settings")
-local MiscTab = Window:CreateTab("Misc")
+local Window = OrionLib:MakeWindow({Name = "🐾 BGSI | Hatch GUI", HidePremium = false, SaveConfig = true, ConfigFolder = "BGSI_Hatch_GUI"})
 
--- Variables
-local autoHatch = false
-local hatchSpeed = 0.05
-local selectedEgg = "Void Egg"
-local autoSell = false
-local autoMerge = false
+local Tab = Window:MakeTab({
+	Name = "🐣 Uova",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
 
--- Egg list
-local eggs = {
-    "Void Egg",
-    "Mythic Egg",
-    "Galaxy Egg",
-    "Demonic Egg",
-    "Heaven Egg"
-}
+local hatchSpeed = 1
 
--- Functions
-function HatchEgg()
-    while autoHatch do
-        local args = {
-            [1] = selectedEgg,
-            [2] = "TripleEgg"
-        }
-        game:GetService("ReplicatedStorage").RemoteFunctions.HatchEgg:InvokeServer(unpack(args))
-        wait(hatchSpeed)
-    end
-end
+Tab:AddToggle({
+	Name = "✨ Auto Hatch",
+	Default = false,
+	Callback = function(v)
+		getgenv().autoHatch = v
+		while getgenv().autoHatch do
+			game:GetService("ReplicatedStorage").Remotes.HatchEgg:FireServer("VoidEgg", 3) -- 3 = triple hatch
+			wait(hatchSpeed)
+		end
+	end
+})
 
-function SellAll()
-    while autoSell do
-        game:GetService("ReplicatedStorage").RemoteFunctions.SellAll:FireServer()
-        wait(10)
-    end
-end
+Tab:AddSlider({
+	Name = "⏱️ Hatch Speed (sec)",
+	Min = 0.1,
+	Max = 3,
+	Default = 1,
+	Color = Color3.fromRGB(255,125,0),
+	Increment = 0.1,
+	ValueName = "s",
+	Callback = function(Value)
+		hatchSpeed = Value
+	end
+})
 
-function MergeAll()
-    while autoMerge do
-        game:GetService("ReplicatedStorage").RemoteFunctions.MergePets:FireServer()
-        wait(15)
-    end
-end
+Tab:AddButton({
+	Name = "🔝 Equip Best Pet",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.EquipBest:FireServer()
+	end    
+})
 
--- GUI Elements
-MainTab:CreateToggle("Auto Hatch", function(val)
-    autoHatch = val
-    if val then
-        spawn(HatchEgg)
-    end
-end)
+Tab:AddButton({
+	Name = "❌ Chiudi GUI",
+	Callback = function()
+        OrionLib:Destroy()
+	end    
+})
 
-MainTab:CreateSlider("Hatch Speed (lower = faster)", 0.01, 1, function(val)
-    hatchSpeed = val
-end)
-
-EggsTab:CreateDropdown("Select Egg", eggs, function(val)
-    selectedEgg = val
-end)
-
-MiscTab:CreateToggle("Auto Sell Pets", function(val)
-    autoSell = val
-    if val then
-        spawn(SellAll)
-    end
-end)
-
-MiscTab:CreateToggle("Auto Merge Pets", function(val)
-    autoMerge = val
-    if val then
-        spawn(MergeAll)
-    end
-end)
-
--- Notification
-Library:Notification("Loaded", "BGSI Supreme Hatch Loaded! Enjoy cracking eggs bro 🥚🔥")
+OrionLib:Init()
